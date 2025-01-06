@@ -7,6 +7,7 @@ import com.sparta.hotdeal.product.application.dtos.req.review.ReqPutReviewDto;
 import com.sparta.hotdeal.product.application.service.ReviewService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,7 +36,12 @@ public class ReviewController {
     }
 
     @PutMapping("/{reviewId}")
-    public ResponseDto<Void> updateReview(@PathVariable int reviewId, @RequestBody ReqPutReviewDto reqPutReviewDto) {
+    public ResponseDto<Void> updateReview(@PathVariable UUID reviewId,
+                                          @ModelAttribute ReqPutReviewDto reqPutReviewDto) {
+
+        // temp user name
+        String username = "testUser";
+        reviewService.updateReview(reviewId, reqPutReviewDto, username);
         return ResponseDto.of("리뷰가 수정되었습니다.", null);
     }
 

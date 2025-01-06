@@ -1,6 +1,7 @@
 package com.sparta.hotdeal.product.application.service;
 
 import com.sparta.hotdeal.product.application.dtos.req.review.ReqPostReviewDto;
+import com.sparta.hotdeal.product.application.dtos.req.review.ReqPutReviewDto;
 import com.sparta.hotdeal.product.application.exception.ApplicationException;
 import com.sparta.hotdeal.product.application.exception.ErrorCode;
 import com.sparta.hotdeal.product.application.service.client.OrderClientService;
@@ -9,8 +10,10 @@ import com.sparta.hotdeal.product.domain.entity.review.Review;
 import com.sparta.hotdeal.product.domain.repository.product.ProductRepository;
 import com.sparta.hotdeal.product.domain.repository.review.ReviewRepository;
 import com.sparta.hotdeal.product.infrastructure.dtos.ResGetOrderByIdDto;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -36,8 +39,22 @@ public class ReviewService {
         }
 
         Review review = Review.create(reqPostReviewDto.getOrderId(), reqPostReviewDto.getProductId(),
-                reqPostReviewDto.getRating(), reqPostReviewDto.getReview(), reviewImgs);
+                reqPostReviewDto.getUserId(), reqPostReviewDto.getRating(), reqPostReviewDto.getReview(), reviewImgs);
 
         reviewRepository.save(review);
+    }
+
+    @Transactional
+    public void updateReview(UUID reviewId, ReqPutReviewDto reqPutReviewDto, String username) {
+        // (1) 리뷰 존재 유무 확인
+        Review fetchedReview = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND_EXCEPTION));
+
+        File reviewImgs = fetchedReview.getReviewImgs();
+        if (reqPutReviewDto.getReviewImgs() != null) {
+            subFileService.updateSubFiles(reqPutReviewDto.getReviewImgs(), reviewImgs, username);
+        }
+
+        fetchedReview.update(reqPutReviewDto.getRating(), reqPutReviewDto.getReview());
     }
 }
