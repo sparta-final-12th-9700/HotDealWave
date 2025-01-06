@@ -54,13 +54,8 @@ public class ReviewController {
     }
 
     @GetMapping("/{reviewId}")
-    public ResponseDto<ResGetReviewByIdDto> getReviewById(@PathVariable int reviewId) {
-        ResGetReviewByIdDto resGetReviewByIdDto = ResGetReviewByIdDto.builder()
-                .review("리뷰텍스트 테스트")
-                .rating(0.5)
-                .nickname("테스트 닉네임")
-                .review_imgs(List.of("img1", "img2"))
-                .build();
+    public ResponseDto<ResGetReviewByIdDto> getReviewById(@PathVariable UUID reviewId) {
+        ResGetReviewByIdDto resGetReviewByIdDto = reviewService.getReviewById(reviewId);
         return ResponseDto.of("리뷰가 조회되었습니다.", resGetReviewByIdDto);
     }
 

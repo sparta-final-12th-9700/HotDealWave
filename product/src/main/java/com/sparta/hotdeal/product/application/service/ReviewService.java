@@ -2,14 +2,18 @@ package com.sparta.hotdeal.product.application.service;
 
 import com.sparta.hotdeal.product.application.dtos.req.review.ReqPostReviewDto;
 import com.sparta.hotdeal.product.application.dtos.req.review.ReqPutReviewDto;
+import com.sparta.hotdeal.product.application.dtos.res.review.ResGetReviewByIdDto;
 import com.sparta.hotdeal.product.application.exception.ApplicationException;
 import com.sparta.hotdeal.product.application.exception.ErrorCode;
 import com.sparta.hotdeal.product.application.service.client.OrderClientService;
 import com.sparta.hotdeal.product.domain.entity.product.File;
+import com.sparta.hotdeal.product.domain.entity.product.Product;
+import com.sparta.hotdeal.product.domain.entity.product.SubFile;
 import com.sparta.hotdeal.product.domain.entity.review.Review;
 import com.sparta.hotdeal.product.domain.repository.product.ProductRepository;
 import com.sparta.hotdeal.product.domain.repository.review.ReviewRepository;
 import com.sparta.hotdeal.product.infrastructure.dtos.ResGetOrderByIdDto;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -50,6 +54,14 @@ public class ReviewService {
         Review fetchedReview = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND_EXCEPTION));
 
+        // (2) 상품 존재 유무 확인
+        Product fetchedProduct = productRepository.findById(fetchedReview.getProductID())
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND_EXCEPTION));
+
+        // TODO: rating이 double형입니다 :) 확인필요!
+        fetchedProduct.decrementReview((int) fetchedReview.getRating());
+        fetchedProduct.incrementReview((int) reqPutReviewDto.getRating());
+
         File reviewImgs = fetchedReview.getReviewImgs();
         if (reqPutReviewDto.getReviewImgs() != null) {
             subFileService.updateSubFiles(reqPutReviewDto.getReviewImgs(), reviewImgs, username);
@@ -63,10 +75,33 @@ public class ReviewService {
         Review fetchedReview = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND_EXCEPTION));
 
+        // (2) 상품 존재 유무 확인
+        Product fetchedProduct = productRepository.findById(fetchedReview.getProductID())
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND_EXCEPTION));
+
+        // TODO: rating이 double형입니다 :) 확인필요!
+        fetchedProduct.decrementReview((int) fetchedReview.getRating());
+
         File reviewImgs = fetchedReview.getReviewImgs();
         fileService.deleteFile(reviewImgs, username);
         subFileService.deleteImg(reviewImgs, username);
 
         fetchedReview.delete(username);
+    }
+
+    public ResGetReviewByIdDto getReviewById(UUID reviewId) {
+        // (1) 리뷰 존재 유무 확인
+        Review fetchedReview = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND_EXCEPTION));
+
+        File reviewImgsFile = fetchedReview.getReviewImgs();
+        List<String> reviewImgs = reviewImgsFile.getSubFiles().stream().map(SubFile::getResource).toList();
+
+        return ResGetReviewByIdDto.builder()
+                .nickname(fetchedReview.getCreatedBy())
+                .rating(fetchedReview.getRating())
+                .review(fetchedReview.getReview())
+                .review_imgs(reviewImgs)
+                .build();
     }
 }
