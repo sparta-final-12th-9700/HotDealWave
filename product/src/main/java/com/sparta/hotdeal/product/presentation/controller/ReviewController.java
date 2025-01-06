@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,16 +62,7 @@ public class ReviewController {
     }
 
     @GetMapping
-    public ResponseDto<List<ResGetReviewByIdDto>> getReviewList() {
-        ResGetReviewByIdDto resGetReviewByIdDto = ResGetReviewByIdDto.builder()
-                .review("리뷰텍스트 테스트")
-                .rating(0.5)
-                .nickname("테스트 닉네임")
-                .review_imgs(List.of("img1", "img2"))
-                .build();
-
-        List<ResGetReviewByIdDto> responseDtos = new ArrayList<>();
-        responseDtos.add(resGetReviewByIdDto);
-        return ResponseDto.of("리뷰목록이 조회되었습니다.", responseDtos);
+    public ResponseDto<Page<ResGetReviewByIdDto>> getReviewList(Pageable pageable) {
+        return ResponseDto.of("리뷰목록이 조회되었습니다.", reviewService.getReviewList(pageable));
     }
 }

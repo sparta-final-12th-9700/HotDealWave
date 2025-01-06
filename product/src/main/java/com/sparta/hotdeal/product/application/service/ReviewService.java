@@ -16,6 +16,8 @@ import com.sparta.hotdeal.product.infrastructure.dtos.ResGetOrderByIdDto;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -94,14 +96,11 @@ public class ReviewService {
         Review fetchedReview = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND_EXCEPTION));
 
-        File reviewImgsFile = fetchedReview.getReviewImgs();
-        List<String> reviewImgs = reviewImgsFile.getSubFiles().stream().map(SubFile::getResource).toList();
+        return ResGetReviewByIdDto.create(fetchedReview);
+    }
 
-        return ResGetReviewByIdDto.builder()
-                .nickname(fetchedReview.getCreatedBy())
-                .rating(fetchedReview.getRating())
-                .review(fetchedReview.getReview())
-                .review_imgs(reviewImgs)
-                .build();
+    public Page<ResGetReviewByIdDto> getReviewList(Pageable pageable) {
+        Page<Review> reviewPage = reviewRepository.findAll(pageable);
+        return reviewPage.map(ResGetReviewByIdDto::create);
     }
 }
