@@ -46,7 +46,10 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{reviewId}")
-    public ResponseDto<Void> deleteReview(@PathVariable int reviewId) {
+    public ResponseDto<Void> deleteReview(@PathVariable UUID reviewId) {
+        // temp user name
+        String username = "testUser";
+        reviewService.deleteReview(reviewId, username);
         return ResponseDto.of("리뷰가 삭제되었습니다.", null);
     }
 

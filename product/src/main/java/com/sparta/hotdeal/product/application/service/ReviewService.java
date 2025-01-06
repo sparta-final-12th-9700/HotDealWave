@@ -57,4 +57,16 @@ public class ReviewService {
 
         fetchedReview.update(reqPutReviewDto.getRating(), reqPutReviewDto.getReview());
     }
+
+    public void deleteReview(UUID reviewId, String username) {
+        // (1) 리뷰 존재 유무 확인
+        Review fetchedReview = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND_EXCEPTION));
+
+        File reviewImgs = fetchedReview.getReviewImgs();
+        fileService.deleteFile(reviewImgs, username);
+        subFileService.deleteImg(reviewImgs, username);
+
+        fetchedReview.delete(username);
+    }
 }
