@@ -89,6 +89,7 @@ public class ReviewService {
         fetchedReview.delete(username);
     }
 
+    @Transactional(readOnly = true)
     public ResGetReviewByIdDto getReviewById(UUID reviewId) {
         // (1) 리뷰 존재 유무 확인
         Review fetchedReview = reviewRepository.findById(reviewId)
@@ -97,6 +98,7 @@ public class ReviewService {
         return ResGetReviewByIdDto.create(fetchedReview);
     }
 
+    @Transactional(readOnly = true)
     public Page<ResGetReviewByIdDto> getReviewList(Pageable pageable) {
         Page<Review> reviewPage = reviewRepository.findAll(pageable);
         return reviewPage.map(ResGetReviewByIdDto::create);
