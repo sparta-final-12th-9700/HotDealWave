@@ -5,8 +5,7 @@ import com.sparta.hotdeal.product.application.dtos.res.review.ResGetReviewByIdDt
 import com.sparta.hotdeal.product.application.dtos.req.review.ReqPostReviewDto;
 import com.sparta.hotdeal.product.application.dtos.req.review.ReqPutReviewDto;
 import com.sparta.hotdeal.product.application.service.ReviewService;
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,13 +31,13 @@ public class ReviewController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseDto<Void> createReview(@ModelAttribute ReqPostReviewDto reqPostReviewDto) {
+    public ResponseDto<Void> createReview(@Valid @ModelAttribute ReqPostReviewDto reqPostReviewDto) {
         reviewService.createReview(reqPostReviewDto);
         return ResponseDto.of("리뷰가 생성되었습니다.", null);
     }
 
     @PutMapping("/{reviewId}")
-    public ResponseDto<Void> updateReview(@PathVariable UUID reviewId,
+    public ResponseDto<Void> updateReview(@Valid @PathVariable UUID reviewId,
                                           @ModelAttribute ReqPutReviewDto reqPutReviewDto) {
 
         // temp user name
