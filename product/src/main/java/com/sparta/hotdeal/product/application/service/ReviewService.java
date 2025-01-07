@@ -60,9 +60,8 @@ public class ReviewService {
         Product fetchedProduct = productRepository.findById(fetchedReview.getProductID())
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND_EXCEPTION));
 
-        // TODO: rating이 double형입니다 :) 확인필요!
-        fetchedProduct.decrementReview((int) fetchedReview.getRating());
-        fetchedProduct.incrementReview((int) reqPutReviewDto.getRating());
+        fetchedProduct.decrementReview(fetchedReview.getRating());
+        fetchedProduct.incrementReview(reqPutReviewDto.getRating());
 
         File reviewImgs = fetchedReview.getReviewImgs();
         if (reqPutReviewDto.getReviewImgs() != null) {
@@ -81,8 +80,7 @@ public class ReviewService {
         Product fetchedProduct = productRepository.findById(fetchedReview.getProductID())
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND_EXCEPTION));
 
-        // TODO: rating이 double형입니다 :) 확인필요!
-        fetchedProduct.decrementReview((int) fetchedReview.getRating());
+        fetchedProduct.decrementReview(fetchedReview.getRating());
 
         File reviewImgs = fetchedReview.getReviewImgs();
         fileService.deleteFile(reviewImgs, username);
