@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -74,6 +75,9 @@ public class Product extends AuditingDate {
 
     @Column
     private Integer discountPrice;
+
+    @Version
+    private Long version;
 
     public static Product create(
             String name,
