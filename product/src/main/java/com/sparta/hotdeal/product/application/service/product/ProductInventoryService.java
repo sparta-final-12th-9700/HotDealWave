@@ -16,7 +16,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.StaleObjectStateException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -46,7 +48,7 @@ public class ProductInventoryService {
         for (int i = 0; i < retryCount; i++) {
             try {
                 return processProductQuantity(reqPatchProductQuantityDto, isRestore);
-            } catch (OptimisticLockException e) {
+            } catch (OptimisticLockException | StaleObjectStateException e) {
                 log.error("Optimistic Lock exception occurred on attempt {}. Retrying...", i + 1);
 
                 // 마지막 재시도에서 실패하면 예외를 던진다
@@ -57,7 +59,7 @@ public class ProductInventoryService {
 
                 // 재시도 전에 잠시 대기
                 try {
-                    Thread.sleep(200);  // 대기 시간을 조금 늘려 재시도
+                    Thread.sleep(200 * (long) Math.pow(2, i));  // 대기 시간을 조금 늘려 재시도
                 } catch (InterruptedException interruptedException) {
                     Thread.currentThread().interrupt();
                 }
@@ -67,7 +69,8 @@ public class ProductInventoryService {
     }
 
     // 상품 수량 처리
-    private <T> List<T> processProductQuantity(
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    protected <T> List<T> processProductQuantity(
             List<ReqPatchProductQuantityDto> reqPatchProductQuantityDto,
             boolean isRestore) {
 
@@ -110,13 +113,7 @@ public class ProductInventoryService {
             Product product = findProductById(dto.getProductId(), products);
 
             try {
-                if (isRestore) {
-                    product.increaseQuantity(dto.getQuantity());
-                } else {
-                    product.decreaseQuantity(dto.getQuantity());
-                }
-                productRepository.save(product);  // 버전 관리 자동 처리
-
+                processSingleProduct(product, dto.getQuantity(), isRestore);
             } catch (OptimisticLockException e) {
                 throw new ApplicationException(ErrorCode.PRODUCT_CONCURRENT_MODIFICATION_EXCEPTION);
             }
@@ -132,6 +129,16 @@ public class ProductInventoryService {
         return resPatchProductQuantityDtos;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    protected void processSingleProduct(Product product, int quantity, boolean isRestore) {
+        if (isRestore) {
+            product.increaseQuantity(quantity);
+        } else {
+            product.decreaseQuantity(quantity);
+        }
+        productRepository.save(product);
+    }
+
     private Product findProductById(UUID productId, List<Product> products) {
         return products.stream()
                 .filter(product -> product.getId().equals(productId))
@@ -139,7 +146,9 @@ public class ProductInventoryService {
                 .orElseThrow(() -> new ApplicationException(ErrorCode.PRODUCT_NOT_FOUND_EXCEPTION));
     }
 
-    private void processDiscountedProducts(List<ReqPromotionQuantityDto> reqPromotionQuantityDtos, Boolean isRestore) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    protected void processDiscountedProducts(List<ReqPromotionQuantityDto> reqPromotionQuantityDtos,
+                                             Boolean isRestore) {
         productPromotionHelperService.processPromotionQuantity(reqPromotionQuantityDtos, isRestore);
     }
 }

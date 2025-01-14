@@ -10,6 +10,10 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+        jdbc:
+          sql_exception_converter: false
+          batch_versioned_data: true
+    #        format_sql: true
     show-sql: true
 
 eureka:
